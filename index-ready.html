@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f8f0df">
+    <title>Palavra! | Adivinhe a palavra</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --paper: #f8f0df;
+            --ink: #263a35;
+            --green: #32765c;
+            --coral: #db5c43;
+            --sun: #edc24e;
+            --blue: #478bb2;
+            --muted: #68736b;
+            --display: 'Bricolage Grotesque', 'Trebuchet MS', sans-serif;
+            --body: 'Atkinson Hyperlegible', 'Trebuchet MS', sans-serif;
+        }
+        * { box-sizing: border-box; }
+        body {
+            min-width: 320px;
+            min-height: 100vh;
+            margin: 0;
+            color: var(--ink);
+            background-color: var(--paper);
+            background-image: repeating-linear-gradient(135deg, transparent 0 17px, rgba(96, 119, 91, .06) 17px 18px);
+            font-family: var(--body);
+        }
+        button { font: inherit; }
+        button:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+        .game { width: min(100% - 28px, 440px); margin: auto; padding: 14px 0 20px; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; padding: 11px 14px; background: var(--green); border-bottom: 4px solid var(--coral); border-radius: 4px; }
+        .brand { color: #fff; font: 800 20px var(--display); letter-spacing: .03em; }
+        .brand span { color: var(--sun); }
+        .round { padding: 6px 9px; color: var(--ink); background: var(--sun); border-radius: 3px; font-size: 10px; font-weight: 700; letter-spacing: .1em; }
+        .intro { padding: 14px 0 10px; text-align: center; }
+        h1 { margin: 0; color: var(--green); font: 800 28px/1.05 var(--display); }
+        .subtitle { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+        .board { display: grid; gap: 5px; width: min(100%, 280px); margin: 0 auto 11px; }
+        .row { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 5px; }
+        .tile { display: grid; aspect-ratio: 1; place-items: center; background: rgba(255,255,255,.62); border: 2px solid #c8c9b9; font: 800 21px var(--display); }
+        .tile.filled { border-color: var(--green); }
+        .correct { color: #fff; background: var(--green) !important; border-color: var(--green) !important; }
+        .present { color: var(--ink); background: var(--sun) !important; border-color: var(--sun) !important; }
+        .absent { color: #fff; background: #727d79 !important; border-color: #727d79 !important; }
+        .legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 10px; margin: 0 0 9px; color: #4d5b54; font-size: 10px; }
+        .legend span { display: inline-flex; align-items: center; gap: 5px; }
+        .dot { width: 10px; height: 10px; border-radius: 2px; }
+        .dot.correct { background: var(--green); }
+        .dot.present { background: var(--sun); }
+        .dot.absent { background: #727d79; }
+        .message { min-height: 20px; margin: 0 0 7px; color: var(--green); font-size: 12px; font-weight: 700; text-align: center; }
+        .keyboard { display: grid; gap: 5px; }
+        .key-row { display: flex; justify-content: center; gap: 4px; }
+        .key { flex: 1 1 0; min-width: 0; max-width: 37px; height: 41px; padding: 0 2px; color: var(--ink); background: #f0d47b; border: 0; border-radius: 4px; font: 700 13px var(--display); cursor: pointer; touch-action: manipulation; }
+        .key-row:nth-child(2) .key { background: #c9e0d0; }
+        .key-row:nth-child(3) .key { background: #c9e1eb; }
+        .key:hover { filter: brightness(.95); }
+        .key.wide { flex: 1.5 1 0; max-width: 58px; color: #fff; background: var(--coral) !important; font: 700 11px var(--body); }
+        .key.correct { color: white; }
+        .key.present { color: var(--ink); }
+        .key.absent { color: white; }
+        .new-word { display: block; min-height: 42px; margin: 11px auto 0; padding: 8px 18px; color: #fff; background: var(--coral); border: 0; border-radius: 4px; font-weight: 700; cursor: pointer; }
+        .new-word:hover { background: #b94735; }
+        .new-word[hidden] { display: none; }
+        @media (max-width: 360px) {
+            .game { width: calc(100% - 24px); padding-top: 12px; }
+            .board,.row { gap: 5px; }
+            .tile { font-size: 20px; }
+            .key-row { gap: 3px; }
+            .key { height: 39px; font-size: 12px; }
+        }
+        @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+    </style>
+</head>
+<body>
+    <main class="game">
+        <header class="topbar"><div class="brand">PALAVRA<span>!</span></div><div class="round" id="round">RODADA 01</div></header>
+        <section class="intro"><h1>Qual é a palavra?</h1><p class="subtitle">Cinco letras. Seis tentativas. Vamos jogar.</p></section>
+        <div class="board" id="board" role="group" aria-label="Tabuleiro com seis tentativas"></div>
+        <div class="legend" aria-label="Significado das cores"><span><i class="dot correct"></i>Letra no lugar</span><span><i class="dot present"></i>Letra existe</span><span><i class="dot absent"></i>Não aparece</span></div>
+        <p class="message" id="message" role="status" aria-live="polite">Digite uma palavra de cinco letras.</p>
+        <div class="keyboard" id="keyboard" role="group" aria-label="Teclado de letras">
+            <div class="key-row">QWERTYUIOP</div>
+            <div class="key-row">ASDFGHJKL</div>
+            <div class="key-row"><button class="key wide" data-key="ENTER">ENTER</button>ZXCVBNM<button class="key wide" data-key="BACKSPACE" aria-label="Apagar letra">⌫</button></div>
+        </div>
+        <button class="new-word" id="new-word" type="button" hidden>Nova palavra</button>
+    </main>
+    <script>
+        const words = ['NUVEM', 'FAROL', 'PRAIA', 'LIVRO', 'VENTO', 'ACUDE'];
+        const board = document.getElementById('board');
+        const keyboard = document.getElementById('keyboard');
+        const message = document.getElementById('message');
+        const newWord = document.getElementById('new-word');
+        let round = 0, answer = words[0], guesses = [], current = '', ended = false;
+
+        keyboard.querySelectorAll('.key-row').forEach(row => {
+            [...row.childNodes].forEach(node => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    [...node.textContent.trim()].forEach(letter => {
+                        const key = document.createElement('button');
+                        key.className = 'key'; key.type = 'button'; key.textContent = letter; key.dataset.key = letter;
+                        key.setAttribute('aria-label', `Letra ${letter}`); row.insertBefore(key, node);
+                    });
+                    node.remove();
+                }
+            });
+        });
+
+        function paint() {
+            board.replaceChildren();
+            for (let r = 0; r < 6; r++) {
+                const row = document.createElement('div'); row.className = 'row';
+                for (let c = 0; c < 5; c++) {
+                    const tile = document.createElement('div'); tile.className = 'tile';
+                    const guess = guesses[r];
+                    if (guess) {
+                        tile.textContent = guess.word[c]; tile.classList.add(guess.marks[c]);
+                        tile.setAttribute('aria-label', `${guess.word[c]}, ${guess.marks[c] === 'correct' ? 'posição certa' : guess.marks[c] === 'present' ? 'em outra posição' : 'não aparece na palavra'}`);
+                    } else if (r === guesses.length && current[c]) {
+                        tile.textContent = current[c]; tile.classList.add('filled');
+                    }
+                    row.append(tile);
+                }
+                board.append(row);
+            }
+            updateKeys();
+        }
+
+        function updateKeys() {
+            const states = new Map();
+            guesses.forEach(guess => guess.word.split('').forEach((letter, i) => {
+                const rank = { absent: 0, present: 1, correct: 2 };
+                if (!states.has(letter) || rank[guess.marks[i]] > rank[states.get(letter)]) states.set(letter, guess.marks[i]);
+            }));
+            keyboard.querySelectorAll('[data-key]').forEach(key => {
+                key.classList.remove('correct', 'present', 'absent');
+                if (states.has(key.dataset.key)) key.classList.add(states.get(key.dataset.key));
+                key.disabled = ended;
+            });
+        }
+
+        function press(key) {
+            if (ended) return;
+            if (key === 'ENTER') return submit();
+            if (key === 'BACKSPACE') current = current.slice(0, -1);
+            else if (/^[A-Z]$/.test(key) && current.length < 5) current += key;
+            paint();
+        }
+
+        function submit() {
+            if (current.length !== 5) { message.textContent = 'A palavra precisa ter cinco letras.'; return; }
+            const marks = Array(5).fill('absent'), remaining = [...answer];
+            [...current].forEach((letter, i) => { if (letter === answer[i]) { marks[i] = 'correct'; remaining[i] = ''; } });
+            [...current].forEach((letter, i) => { const match = remaining.indexOf(letter); if (marks[i] !== 'correct' && match >= 0) { marks[i] = 'present'; remaining[match] = ''; } });
+            guesses.push({ word: current, marks });
+            const won = current === answer;
+            current = '';
+            if (won || guesses.length === 6) {
+                ended = true; newWord.hidden = false;
+                message.textContent = won ? `Acertou em ${guesses.length} ${guesses.length === 1 ? 'tentativa' : 'tentativas'}!` : `A palavra era ${answer}. Tente outra!`;
+            } else message.textContent = 'Boa tentativa. As cores mostram o caminho.';
+            paint();
+        }
+
+        keyboard.addEventListener('click', event => { const key = event.target.closest('[data-key]'); if (key) press(key.dataset.key); });
+        document.addEventListener('keydown', event => {
+            if (event.ctrlKey || event.altKey || event.metaKey || ended) return;
+            if (event.key === 'Enter') { event.preventDefault(); press('ENTER'); }
+            else if (event.key === 'Backspace') { event.preventDefault(); press('BACKSPACE'); }
+            else if (event.key.length === 1) {
+                const letter = event.key.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+                if (/^[A-Z]$/.test(letter)) press(letter);
+            }
+        });
+        newWord.addEventListener('click', () => {
+            round = (round + 1) % words.length; answer = words[round]; guesses = []; current = ''; ended = false;
+            document.getElementById('round').textContent = `RODADA ${String(round + 1).padStart(2, '0')}`;
+            message.textContent = 'Digite uma palavra de cinco letras.'; newWord.hidden = true; paint();
+        });
+        paint();
+    </script>
+</body>
+</html>

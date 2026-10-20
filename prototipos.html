@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f2f0e9">
+    <title>Jogo das Palavras | Protótipos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { color-scheme: light; --ink:#202a29; --paper:#f2f0e9; --muted:#66706c; --line:#d7d8cf; --display:'Bricolage Grotesque','Trebuchet MS',sans-serif; --body:'Atkinson Hyperlegible','Trebuchet MS',sans-serif; }
+        * { box-sizing:border-box; }
+        body { margin:0; min-width:320px; color:var(--ink); background-color:var(--paper); background-image:radial-gradient(#c8c9bd .65px,transparent .65px); background-size:13px 13px; font-family:var(--body); }
+        button,input { font:inherit; } button { color:inherit; }
+        button:focus-visible,input:focus-visible,[role="tab"]:focus-visible { outline:3px solid #e45c3d; outline-offset:3px; }
+        .page { width:min(100% - 40px,1120px); margin:0 auto; padding:28px 0 56px; }
+        .masthead { display:flex; align-items:center; justify-content:space-between; gap:20px; padding-bottom:20px; border-bottom:1px solid var(--line); }
+        .brand { display:flex; align-items:center; gap:11px; } .brand-mark { display:grid; width:38px; aspect-ratio:1; place-items:center; background:#f1bd43; border:2px solid var(--ink); border-radius:12px 5px; font:800 14px var(--display); transform:rotate(-5deg); }
+        .brand-name { font:700 18px var(--display); } .edition { color:var(--muted); font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+        .expert-board { display:grid; grid-template-columns:repeat(3,1fr); margin:23px 0 34px; padding:15px 19px; background:#263431; color:#fff9e9; border-radius:6px; }
+        .expert { display:flex; align-items:flex-start; gap:12px; padding:2px 18px; border-left:1px solid #52605a; } .expert:first-child { padding-left:0; border-left:0; } .expert:last-child { padding-right:0; }
+        .expert-stamp { flex:0 0 auto; display:grid; width:32px; aspect-ratio:1; place-items:center; border-radius:50%; color:#202a29; font:800 11px var(--display); }
+        .expert:nth-child(1) .expert-stamp { background:#f1bd43; } .expert:nth-child(2) .expert-stamp { background:#68c7ac; } .expert:nth-child(3) .expert-stamp { background:#f28c71; }
+        .expert strong { display:block; margin:1px 0 3px; font:700 14px var(--display); } .expert p { margin:0; color:#d2d9d0; font-size:12px; line-height:1.35; }
+        .intro { display:flex; align-items:end; justify-content:space-between; gap:16px; margin-bottom:17px; } .kicker { margin:0 0 4px; color:#a04b37; font-size:11px; font-weight:700; letter-spacing:.13em; text-transform:uppercase; }
+        h1 { margin:0; font:700 clamp(27px,4vw,39px)/1.04 var(--display); } .concept-count { color:var(--muted); font-size:13px; font-weight:700; white-space:nowrap; }
+        .prototype-tabs { display:flex; gap:8px; overflow-x:auto; padding:5px 3px 11px; scrollbar-width:thin; }
+        .prototype-tab { flex:1 0 170px; min-height:54px; display:flex; align-items:center; gap:11px; padding:8px 15px; background:rgba(255,255,255,.55); border:1px solid var(--line); border-radius:5px; cursor:pointer; text-align:left; transition:background-color .18s,transform .18s; }
+        .prototype-tab:hover { transform:translateY(-2px); } .prototype-tab[aria-selected="true"] { background:#263431; border-color:#263431; color:#fff9e9; }
+        .tab-num { color:#a04b37; font:800 12px var(--display); } .prototype-tab[aria-selected="true"] .tab-num { color:#f1bd43; } .tab-label { font:700 14px var(--display); }
+        .prototype { display:none; } .prototype.active { display:block; animation:enter .28s ease-out both; } @keyframes enter { from {opacity:0;transform:translateY(6px)} to {opacity:1;transform:translateY(0)} }
+        .prototype-frame { min-height:470px; overflow:hidden; border:1px solid rgba(32,42,41,.16); border-radius:7px; box-shadow:0 12px 35px rgba(32,42,41,.10); }
+        /* Conceito 1: corrida arcade, com alto contraste. */
+        .arcade { background:#fff9e9; } .arcade-header { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:22px 28px 16px; }
+        .arcade-overline,.daily-overline,.trail-overline { margin:0 0 4px; font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; } .arcade-overline { color:#397567; }
+        .arcade h2,.daily h2,.trail h2 { margin:0; font:700 27px/1 var(--display); } .quiet-button { min-height:40px; padding:8px 13px; background:transparent; border:1px solid currentColor; border-radius:4px; font-weight:700; cursor:pointer; }
+        .race-stats { display:flex; gap:9px; padding:0 28px 14px; } .race-stat { padding:7px 11px; background:#e8eee1; border-radius:3px; color:#334642; font-size:12px; } .race-stat strong { margin-left:5px; font:700 14px var(--display); }
+        .race-scene { position:relative; height:218px; overflow:hidden; background:linear-gradient(180deg,#bfe2d5 0%,#d8edcf 73%,#739a5b 73%,#739a5b 100%); border-block:2px solid #263431; }
+        .sun { position:absolute; top:22px; right:13%; width:52px; aspect-ratio:1; border-radius:50%; background:#f4c64f; box-shadow:0 0 0 9px rgba(244,198,79,.2); }
+        .hill { position:absolute; bottom:57px; width:62%; height:125px; border-radius:50% 50% 0 0; background:#93bf89; } .hill-one { left:-12%; transform:rotate(-8deg); } .hill-two { right:-18%; bottom:52px; height:105px; background:#85af7d; transform:rotate(8deg); }
+        .race-track { position:absolute; right:-3%; bottom:0; left:-3%; height:57px; background:#e8a84c; border-top:5px solid #263431; } .race-track::after { position:absolute; top:23px; left:0; width:100%; border-top:3px dashed rgba(32,42,41,.48); content:''; }
+        .runner { position:absolute; z-index:2; bottom:49px; left:17%; width:36px; height:49px; background:#e45c3d; border:3px solid #263431; border-radius:18px 18px 7px 7px; box-shadow:7px 11px 0 -3px #263431; }
+        .runner::before { position:absolute; top:10px; left:6px; width:18px; height:7px; background:#fff9e9; border:2px solid #263431; border-radius:5px; content:''; } .runner::after { position:absolute; right:-6px; bottom:-9px; width:10px; height:12px; border-right:3px solid #263431; border-bottom:3px solid #263431; content:''; }
+        .flame { position:absolute; z-index:2; right:17%; bottom:47px; width:47px; height:58px; background:#e45c3d; border:3px solid #263431; clip-path:polygon(48% 0,76% 34%,100% 48%,82% 100%,17% 100%,0 64%,27% 40%); }
+        .flame::after { position:absolute; inset:22px 11px 0; background:#f1bd43; clip-path:polygon(50% 0,100% 44%,70% 100%,21% 100%,0 57%); content:''; }
+        .flame[data-kind="gap"] { height:14px; bottom:48px; background:#263431; border:0; clip-path:none; border-radius:2px; }
+        .flame[data-kind="gap"]::after { display:none; }
+        .flame[data-kind="thorns"] { background:#397d54; clip-path:polygon(0 100%,10% 48%,24% 100%,38% 25%,53% 100%,70% 12%,86% 100%,100% 42%,100% 100%); }
+        .flame[data-kind="thorns"]::after { display:none; }
+        .hazard-label { position:absolute; right:12%; bottom:113px; padding:5px 9px; color:#fff9e9; background:#263431; border-radius:2px; font-size:10px; font-weight:700; letter-spacing:.06em; }
+        .race-buttons { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:7px; }
+        .race-buttons .solid-button,.race-buttons .quiet-button { min-height:40px; padding:7px 11px; font-size:12px; }
+        .race-buttons .solid-button { background:#236555; }
+        .race-scene.running .flame,.race-scene.running .hazard-label { animation:approach 2.4s ease-in-out infinite alternate; }
+        .runner.jumping { animation:runner-jump .55s ease-out; }
+        @keyframes approach { to { transform:translateX(-75px); } }
+        @keyframes runner-jump { 50% { transform:translateY(-75px) rotate(-8deg); } }
+        .race-hint { display:grid; grid-template-columns:1fr auto; align-items:center; gap:18px; padding:18px 28px 22px; } .hint-copy { margin:0 0 4px; color:#547268; font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+        .riddle { max-width:620px; margin:0; font:600 19px/1.25 var(--display); } .race-answer { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:9px; margin-top:13px; }
+        .race-answer input,.daily-entry input { width:100%; min-width:0; min-height:45px; padding:10px 13px; color:var(--ink); background:#fff; border:2px solid #aebdb1; border-radius:4px; }
+        .solid-button { min-height:45px; padding:10px 17px; color:#fff; background:#236555; border:2px solid #236555; border-radius:4px; font-weight:700; cursor:pointer; } .solid-button:hover { background:#174e42; }
+        .status { min-height:23px; margin:8px 0 0; color:#334642; font-size:13px; font-weight:700; } .race-stamp { align-self:center; display:grid; width:83px; height:83px; place-items:center; border:2px dashed #d98c37; border-radius:50%; color:#a04b37; font:800 11px/1.1 var(--display); text-align:center; transform:rotate(8deg); }
+        /* Conceito 2: desafio diário com ritmo editorial. */
+        .daily { display:grid; grid-template-columns:minmax(0,1fr) 245px; min-height:470px; background:#fffdf6; } .daily-main { padding:28px clamp(20px,5vw,55px) 30px; }
+        .daily-overline { color:#b14c36; } .daily h2 { font:800 33px/1 var(--display); } .daily-topline { display:flex; align-items:start; justify-content:space-between; gap:15px; }
+        .daily-date { padding-top:3px; color:#74736a; font-size:12px; font-weight:700; } .daily-clue { max-width:510px; margin:14px 0 17px; color:#4b5551; font-size:15px; line-height:1.45; }
+        .guess-grid { display:grid; grid-template-columns:repeat(5,minmax(39px,48px)); gap:7px; margin-bottom:14px; } .guess-cell { display:grid; aspect-ratio:1; place-items:center; background:#fffdf6; border:2px solid #c9cbc1; font:800 19px var(--display); text-transform:uppercase; }
+        .guess-cell.filled { border-color:#75796e; } .guess-cell.correct { color:white; background:#27745e; border-color:#27745e; } .guess-cell.present { color:#202a29; background:#f1bd43; border-color:#f1bd43; } .guess-cell.absent { color:white; background:#646d67; border-color:#646d67; }
+        .daily-entry { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; max-width:365px; } .daily-entry input { text-transform:uppercase; letter-spacing:.08em; } .daily-entry .solid-button { background:#b14c36; border-color:#b14c36; } .daily-entry .solid-button:hover { background:#8d3929; }
+        .guess-count { margin:3px 0 0; color:#74736a; font-size:12px; } .daily-aside { display:flex; flex-direction:column; justify-content:space-between; padding:25px 21px; color:#fff9e9; background:#314541; }
+        .aside-mark { width:42px; height:42px; display:grid; place-items:center; color:#263431; background:#f1bd43; border-radius:50%; font:800 19px var(--display); } .daily-aside blockquote { margin:28px 0; font:600 19px/1.28 var(--display); }
+        .daily-aside p { margin:0; color:#d4dcd4; font-size:12px; line-height:1.5; } .daily-aside .status { color:#fff9e9; }
+        /* Conceito 3: descoberta sem relógio e montagem manual. */
+        .trail { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(310px,.9fr); min-height:470px; color:#163b39; background:#dff0d7; }
+        .trail-art { position:relative; min-height:370px; overflow:hidden; background:#8dd0c0; border-right:2px solid #163b39; } .trail-art svg { position:absolute; inset:0; width:100%; height:100%; }
+        .trail-sign { position:absolute; z-index:1; top:24px; left:25px; padding:9px 13px; background:#fff5d7; border:2px solid #163b39; box-shadow:4px 4px 0 #163b39; font:700 13px var(--display); transform:rotate(-3deg); }
+        .trail-copy { display:flex; flex-direction:column; justify-content:center; padding:32px clamp(21px,4vw,42px); } .trail-overline { color:#a84b35; } .trail h2 { font-size:29px; }
+        .trail-riddle { margin:18px 0 20px; color:#294e48; font:600 19px/1.35 var(--display); } .tile-bank { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+        .letter-tile { width:47px; height:48px; background:#fff8e3; border:2px solid #163b39; border-radius:4px; box-shadow:0 3px 0 #163b39; font:800 19px var(--display); cursor:pointer; }
+        .letter-tile[aria-pressed="true"] { color:#fff8e3; background:#286e61; box-shadow:none; transform:translateY(3px); } .assembled-word { min-height:32px; margin:0 0 8px; color:#163b39; font:700 18px var(--display); letter-spacing:.12em; }
+        .trail-actions { display:flex; flex-wrap:wrap; gap:8px; } .trail .solid-button { color:#fff; background:#b94b35; border-color:#b94b35; } .trail .solid-button:hover { background:#963b2a; } .trail .quiet-button { min-height:45px; border-color:#51736a; } .trail .status { color:#294e48; }
+        .trail-copy > :not(.contexto-game) { display:none; }
+        .contexto-game { width:100%; }
+        .contexto-game h2 { margin:0; font:800 31px/1 var(--display); }
+        .contexto-game .trail-riddle { margin:12px 0 14px; font-size:16px; }
+        .contexto-form { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:7px; }
+        .contexto-form label { grid-column:1/-1; font-size:12px; font-weight:700; }
+        .contexto-form input { min-width:0; min-height:44px; padding:9px 11px; border:2px solid #92b5a3; border-radius:4px; background:#fffdf2; color:#163b39; }
+        .contexto-form .solid-button { min-height:44px; padding:8px 12px; }
+        .contexto-list { display:grid; gap:6px; margin:13px 0 0; padding:0; list-style:none; }
+        .contexto-list li { display:flex; justify-content:space-between; gap:12px; padding:8px 10px; background:rgba(255,255,255,.62); border-left:4px solid #dba93d; font-size:14px; }
+        .contexto-list li:first-child { border-left-color:#b94b35; }
+        .contexto-list strong { font:800 13px var(--display); }
+        .contexto-status { color:#294e48; }
+        .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+        @media (max-width:720px) {
+            .page { width:min(100% - 24px,560px); padding-top:16px; } .edition { max-width:120px; text-align:right; line-height:1.35; }
+            .expert-board { grid-template-columns:1fr; gap:12px; padding:14px; margin:18px 0 25px; } .expert,.expert:first-child { padding:0; border:0; } .expert p { font-size:12px; }
+            .intro { align-items:start; flex-direction:column; gap:7px; } .prototype-tabs { margin-right:-12px; } .prototype-tab { flex:0 0 auto; min-width:146px; } .prototype-frame { min-height:0; }
+            .arcade-header { padding:18px 17px 13px; } .arcade h2 { font-size:23px; } .race-stats { padding:0 17px 12px; } .race-scene { height:190px; } .race-hint { grid-template-columns:1fr; padding:17px; } .race-stamp { display:none; }
+            .arcade-header { align-items:flex-start; flex-direction:column; } .race-buttons { justify-content:flex-start; }
+            .daily { grid-template-columns:1fr; } .daily-main { padding:23px 18px; } .daily h2 { font-size:29px; } .daily-aside { min-height:130px; padding:18px; } .daily-aside blockquote { margin:12px 0; } .daily-aside>p:last-child { display:none; }
+            .trail { grid-template-columns:1fr; } .trail-art { min-height:220px; border-right:0; border-bottom:2px solid #163b39; } .trail-copy { padding:22px 19px 25px; } .trail h2 { font-size:25px; }
+            .contexto-game h2 { font-size:27px; }
+        }
+        @media (max-width:390px) {
+            .page { width:min(100% - 18px,360px); } .brand-name { font-size:16px; } .expert-board { padding:12px; } .guess-grid { grid-template-columns:repeat(5,minmax(0,1fr)); gap:5px; } .guess-cell { font-size:17px; }
+            .race-answer,.daily-entry { grid-template-columns:1fr; } .solid-button { width:100%; }
+        }
+        @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <header class="masthead"><div class="brand"><span class="brand-mark" aria-hidden="true">JP</span><span class="brand-name">Jogo das Palavras</span></div><span class="edition">Estúdio de protótipos · 01</span></header>
+        <section class="expert-board" aria-label="Painel dos agentes especialistas">
+            <div class="expert"><span class="expert-stamp" aria-hidden="true">UX</span><div><strong>Design de experiência</strong><p>Pista, palpite e retorno em primeiro plano.</p></div></div>
+            <div class="expert"><span class="expert-stamp" aria-hidden="true">A11Y</span><div><strong>Acessibilidade web</strong><p>Teclado, foco visível e ritmo sem pressão.</p></div></div>
+            <div class="expert"><span class="expert-stamp" aria-hidden="true">VIS</span><div><strong>Design visual</strong><p>Três linguagens, com leitura sempre nítida.</p></div></div>
+        </section>
+        <section aria-labelledby="page-title">
+            <div class="intro"><div><p class="kicker">Uma mecânica, três caminhos</p><h1 id="page-title">Jogo das Palavras</h1></div><span class="concept-count" id="concept-count" aria-live="polite">Conceito 1 de 3</span></div>
+            <div class="prototype-tabs" role="tablist" aria-label="Escolha um conceito">
+                <button class="prototype-tab" id="tab-arcade" type="button" role="tab" aria-selected="true" aria-controls="panel-arcade" tabindex="0" data-panel="arcade"><span class="tab-num">01</span><span class="tab-label">Corrida interativa</span></button>
+                <button class="prototype-tab" id="tab-daily" type="button" role="tab" aria-selected="false" aria-controls="panel-daily" tabindex="-1" data-panel="daily"><span class="tab-num">02</span><span class="tab-label">Termo</span></button>
+                <button class="prototype-tab" id="tab-trail" type="button" role="tab" aria-selected="false" aria-controls="panel-trail" tabindex="-1" data-panel="trail"><span class="tab-num">03</span><span class="tab-label">Contexto</span></button>
+            </div>
+            <section class="prototype active" id="panel-arcade" role="tabpanel" aria-labelledby="tab-arcade">
+                <div class="prototype-frame arcade">
+                    <div class="arcade-header"><div><p class="arcade-overline">Conceito 01 · ritmo arcade</p><h2>Quebra-palavra</h2></div><div class="race-buttons"><button class="solid-button" id="race-toggle" type="button" aria-pressed="false">Começar corrida</button><button class="quiet-button" id="jump-button" type="button" aria-keyshortcuts="ArrowUp Space">Pular</button><button class="quiet-button" id="pace-toggle" type="button" aria-pressed="false">Sem tempo: desligado</button></div></div>
+                    <div class="race-stats" aria-label="Progresso da corrida"><span class="race-stat">Distância <strong id="race-distance">0 m</strong></span><span class="race-stat">Obstáculo <strong id="race-combo">1 / 3</strong></span></div>
+                    <div class="race-scene" id="race-scene" role="img" aria-label="Uma corredora se aproxima de uma parede de fogo na pista" tabindex="0"><span class="sun" aria-hidden="true"></span><span class="hill hill-one" aria-hidden="true"></span><span class="hill hill-two" aria-hidden="true"></span><span class="runner" id="runner-art" aria-hidden="true"></span><span class="flame" id="obstacle-art" data-kind="fire" aria-hidden="true"></span><span class="hazard-label" id="hazard-label">PAREDE DE FOGO</span><span class="race-track" aria-hidden="true"></span></div>
+                    <form class="race-hint" id="race-form"><div><p class="hint-copy">Sua pista</p><p class="riddle" id="race-riddle">Comece a corrida para receber a primeira pista.</p><label class="sr-only" for="race-input">Digite a palavra que resolve a pista</label><div class="race-answer"><input id="race-input" name="answer" autocomplete="off" placeholder="Sua palavra..." aria-describedby="race-status"><button class="solid-button" type="submit">Responder</button></div><p class="status" id="race-status" role="status" aria-live="polite">Responda para superar cada obstáculo.</p></div><div class="race-stamp" aria-hidden="true">PENSE<br>RÁPIDO</div></form>
+                </div>
+            </section>
+            <section class="prototype" id="panel-daily" role="tabpanel" aria-labelledby="tab-daily" hidden>
+                <div class="prototype-frame daily">
+                    <div class="daily-main"><div class="daily-topline"><div><p class="daily-overline">Conceito 02 · desafio compartilhado</p><h2>Palavra do dia</h2></div><span class="daily-date">15 OUT · #288</span></div>
+                        <p class="daily-clue">Encontre a palavra de cinco letras em até seis tentativas.</p><div class="guess-grid" id="guess-grid" role="group" aria-label="Seis tentativas de cinco letras"></div>
+                        <form class="daily-entry" id="daily-form"><label class="sr-only" for="daily-input">Seu palpite de cinco letras</label><input id="daily-input" maxlength="5" autocomplete="off" autocapitalize="characters" placeholder="5 letras" aria-describedby="daily-status daily-tries"><button class="solid-button" type="submit">Conferir</button></form>
+                        <p class="status" id="daily-status" role="status" aria-live="polite">Digite um palpite com cinco letras.</p><p class="guess-count" id="daily-tries">6 tentativas disponíveis</p>
+                    </div>
+                    <aside class="daily-aside" aria-label="Resumo do desafio"><span class="aside-mark" aria-hidden="true">?</span><blockquote>Uma resposta.<br>O mesmo desafio.</blockquote><p>As letras certas aparecem no tabuleiro. Compartilhe o resultado sem revelar a palavra.</p></aside>
+                </div>
+            </section>
+            <section class="prototype" id="panel-trail" role="tabpanel" aria-labelledby="tab-trail" hidden>
+                <div class="prototype-frame trail">
+                    <div class="trail-art" role="img" aria-label="Mapa ilustrado de um campo de palavras conectadas"><span class="trail-sign">MAPA DE PALAVRAS</span>
+                        <svg viewBox="0 0 640 390" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><path d="M0 182 150 58l108 110 116-126 266 180v168H0Z" fill="#70a88d"/><path d="m0 229 148-101 112 81 115-120 265 169v148H0Z" fill="#397d68"/><path d="M0 301c92-46 155-26 237-55 92-33 124-91 204-84 77 8 110 59 199 54v174H0Z" fill="#f2cf75"/><path d="M-15 366c115-51 164-26 262-70 84-38 126-84 196-65 80 21 114 54 220 13" fill="none" stroke="#fff5d7" stroke-width="20" stroke-linecap="round"/><path d="M-15 366c115-51 164-26 262-70 84-38 126-84 196-65 80 21 114 54 220 13" fill="none" stroke="#b94b35" stroke-width="4" stroke-dasharray="3 13" stroke-linecap="round"/><path d="M0 323c82-22 121-68 191-66 50 1 78 29 117 18 28-8 45-28 59-50" fill="none" stroke="#317d83" stroke-width="20" stroke-linecap="round"/><path d="M0 323c82-22 121-68 191-66 50 1 78 29 117 18 28-8 45-28 59-50" fill="none" stroke="#c5f0df" stroke-width="3" stroke-dasharray="2 12" stroke-linecap="round"/><circle cx="357" cy="221" r="18" fill="#fff5d7" stroke="#163b39" stroke-width="4"/><path d="m357 209 4 9 10 1-7 7 2 10-9-5-9 5 2-10-7-7 10-1Z" fill="#b94b35"/><circle cx="110" cy="305" r="10" fill="#f4c64f" stroke="#163b39" stroke-width="3"/><circle cx="525" cy="257" r="10" fill="#f4c64f" stroke="#163b39" stroke-width="3"/><path d="M52 98q15-14 30 0 15-14 30 0" fill="none" stroke="#fff5d7" stroke-width="8" stroke-linecap="round"/></svg>
+                    </div>
+                    <div class="trail-copy"><p class="trail-overline">Conceito 03 · descoberta sem relógio</p><h2>A ponte escondida</h2><p class="trail-riddle">Liga duas margens e ajuda você a atravessar. Qual é a palavra?</p>
+                        <div class="tile-bank" id="tile-bank" aria-label="Letras disponíveis"></div><p class="assembled-word" id="assembled-word" aria-label="Palavra montada"></p><div class="trail-actions"><button class="solid-button" id="trail-check" type="button">Testar palavra</button><button class="quiet-button" id="trail-clear" type="button">Limpar letras</button></div><p class="status" id="trail-status" role="status" aria-live="polite">Escolha as letras para montar sua resposta.</p>
+                        <div class="contexto-game"><p class="trail-overline">Conceito 03 · proximidade semântica</p><h2>Contexto</h2><p class="trail-riddle">Encontre a palavra secreta. Quanto menor o ranking, mais perto você chegou.</p><form class="contexto-form" id="contexto-form"><label for="contexto-input">Seu palpite</label><input id="contexto-input" autocomplete="off" aria-describedby="contexto-status" placeholder="Digite uma palavra"><button class="solid-button" type="submit">Tentar</button></form><ol class="contexto-list" id="contexto-list" aria-label="Palpites em ordem de proximidade"></ol><p class="status contexto-status" id="contexto-status" role="status" aria-live="polite">Digite uma palavra para descobrir sua posição.</p></div>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
+    <script>
+        const tabs = [...document.querySelectorAll('[role="tab"]')];
+        const panels = [...document.querySelectorAll('[role="tabpanel"]')];
+        const conceptCount = document.getElementById('concept-count');
+        function selectConcept(tab, moveFocus = false) {
+            tabs.forEach((item, index) => {
+                const selected = item === tab;
+                item.setAttribute('aria-selected', String(selected));
+                item.tabIndex = selected ? 0 : -1;
+                if (selected) {
+                    const panel = document.getElementById(`panel-${item.dataset.panel}`);
+                    panels.forEach(candidate => { const active = candidate === panel; candidate.hidden = !active; candidate.classList.toggle('active', active); });
+                    conceptCount.textContent = `Conceito ${index + 1} de 3`;
+                }
+            });
+            if (moveFocus) tab.focus();
+        }
+        tabs.forEach((tab, index) => {
+            tab.addEventListener('click', () => selectConcept(tab));
+            tab.addEventListener('keydown', event => {
+                let next = index;
+                if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+                else if (event.key === 'ArrowLeft') next = (index + tabs.length - 1) % tabs.length;
+                else if (event.key === 'Home') next = 0;
+                else if (event.key === 'End') next = tabs.length - 1;
+                else return;
+                event.preventDefault(); selectConcept(tabs[next], true);
+            });
+        });
+        const normalize = value => value.trim().toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const raceStages = [
+            { label: 'PAREDE DE FOGO', clue: 'Sou transparente, caio do céu e posso apagar as chamas.', answer: 'agua', kind: 'fire' },
+            { label: 'PRECIPÍCIO', clue: 'Ligo dois lados e ajudo a atravessar um vão.', answer: 'ponte', kind: 'gap' },
+            { label: 'ESPINHOS', clue: 'O que você faz para tirar os pés do chão?', answer: 'pulo', kind: 'thorns' }
+        ];
+        let raceIndex = 0;
+        let raceDistance = 0;
+        let raceActive = false;
+        let raceCalm = false;
+        const raceScene = document.getElementById('race-scene');
+        const raceToggle = document.getElementById('race-toggle');
+        const raceInput = document.getElementById('race-input');
+        const raceStatus = document.getElementById('race-status');
+        const runnerArt = document.getElementById('runner-art');
+        function drawRaceStage() {
+            const stage = raceStages[raceIndex];
+            document.getElementById('hazard-label').textContent = stage.label;
+            document.getElementById('race-riddle').textContent = stage.clue;
+            document.getElementById('race-combo').textContent = `${raceIndex + 1} / ${raceStages.length}`;
+            document.getElementById('race-distance').textContent = `${raceDistance} m`;
+            document.getElementById('obstacle-art').dataset.kind = stage.kind;
+            raceScene.setAttribute('aria-label', `Uma corredora se aproxima de ${stage.label.toLocaleLowerCase('pt-BR')} na pista`);
+        }
+        raceToggle.addEventListener('click', () => {
+            if (raceIndex === raceStages.length) { raceIndex = 0; raceDistance = 0; drawRaceStage(); }
+            raceActive = !raceActive;
+            raceToggle.setAttribute('aria-pressed', String(raceActive));
+            raceToggle.textContent = raceActive ? 'Pausar corrida' : 'Continuar corrida';
+            raceScene.classList.toggle('running', raceActive && !raceCalm);
+            raceStatus.textContent = raceActive ? 'Corrida em andamento. Resolva a pista para avançar.' : 'Corrida pausada.';
+        });
+        document.getElementById('pace-toggle').addEventListener('click', event => {
+            raceCalm = !raceCalm;
+            event.currentTarget.setAttribute('aria-pressed', String(raceCalm));
+            event.currentTarget.textContent = raceCalm ? 'Sem tempo: ligado' : 'Sem tempo: desligado';
+            raceScene.classList.toggle('running', raceActive && !raceCalm);
+            raceStatus.textContent = raceCalm ? 'Modo sem tempo: responda no seu ritmo.' : raceActive ? 'Corrida em andamento. Resolva a pista para avançar.' : 'A corrida está pausada.';
+        });
+        function jump() {
+            if (!raceActive) { raceStatus.textContent = 'Comece a corrida para pular.'; return; }
+            runnerArt.classList.remove('jumping');
+            void runnerArt.offsetWidth;
+            runnerArt.classList.add('jumping');
+            raceStatus.textContent = 'Salto! Agora resolva a pista para superar o obstáculo.';
+        }
+        document.getElementById('jump-button').addEventListener('click', jump);
+        raceScene.addEventListener('keydown', event => {
+            if (event.key === 'ArrowUp' || event.code === 'Space') { event.preventDefault(); jump(); }
+        });
+        document.getElementById('race-form').addEventListener('submit', event => {
+            event.preventDefault();
+            if (!raceActive) { raceStatus.textContent = 'Comece a corrida antes de responder.'; return; }
+            if (normalize(raceInput.value) !== raceStages[raceIndex].answer) {
+                raceStatus.textContent = raceInput.value.trim() ? 'Palavra incorreta. Tente outra resposta para esta pista.' : 'Digite uma palavra antes de responder.';
+                return;
+            }
+            raceIndex++;
+            raceDistance += 50;
+            raceInput.value = '';
+            runnerArt.classList.remove('jumping');
+            if (raceIndex === raceStages.length) {
+                raceActive = false;
+                raceScene.classList.remove('running');
+                raceToggle.setAttribute('aria-pressed', 'false');
+                raceToggle.textContent = 'Jogar novamente';
+                document.getElementById('race-distance').textContent = `${raceDistance} m`;
+                document.getElementById('race-combo').textContent = `${raceStages.length} / ${raceStages.length}`;
+                document.getElementById('hazard-label').textContent = 'PISTA LIVRE';
+                raceStatus.textContent = `Chegada! Você superou os três obstáculos e percorreu ${raceDistance} metros.`;
+            } else {
+                drawRaceStage();
+                raceStatus.textContent = 'Resposta correta! Próximo obstáculo à frente.';
+            }
+        });
+        const dailyAnswer = 'nuvem'; const guesses = []; const grid = document.getElementById('guess-grid');
+        const dailyInput = document.getElementById('daily-input'); const dailyStatus = document.getElementById('daily-status'); const dailyTries = document.getElementById('daily-tries');
+        function renderGrid() {
+            grid.replaceChildren();
+            for (let row = 0; row < 6; row++) for (let col = 0; col < 5; col++) {
+                const guess = guesses[row]; const cell = document.createElement('span'); cell.className = 'guess-cell';
+                if (guess) { cell.textContent = guess[col].letter; cell.classList.add(guess[col].state); }
+                else if (row === guesses.length) { cell.textContent = dailyInput.value[col] || ''; if (cell.textContent) cell.classList.add('filled'); }
+                grid.append(cell);
+            }
+        }
+        dailyInput.addEventListener('input', () => { dailyInput.value = dailyInput.value.replace(/[^a-zA-ZÀ-ÿ]/g, '').slice(0, 5); renderGrid(); });
+        document.getElementById('daily-form').addEventListener('submit', event => {
+            event.preventDefault(); const value = normalize(dailyInput.value);
+            if (value.length !== 5) { dailyStatus.textContent = 'Seu palpite precisa ter cinco letras.'; return; }
+            const remaining = [...dailyAnswer];
+            const result = Array.from(value, (letter, index) => ({ letter: dailyInput.value[index].toLocaleUpperCase('pt-BR'), state: 'absent' }));
+            result.forEach((item, index) => { if (value[index] === dailyAnswer[index]) { item.state = 'correct'; remaining[index] = null; } });
+            result.forEach((item, index) => { if (item.state !== 'correct') { const match = remaining.indexOf(value[index]); if (match !== -1) { item.state = 'present'; remaining[match] = null; } } });
+            guesses.push(result); dailyInput.value = ''; renderGrid();
+            if (value === dailyAnswer) { dailyStatus.textContent = `Acertou em ${guesses.length} ${guesses.length === 1 ? 'tentativa' : 'tentativas'}!`; dailyInput.disabled = true; }
+            else if (guesses.length === 6) { dailyStatus.textContent = 'Fim das tentativas. A palavra era NUVEM.'; dailyInput.disabled = true; }
+            else dailyStatus.textContent = 'Palpite registrado. Confira as letras e tente de novo.';
+            dailyTries.textContent = `${6 - guesses.length} ${6 - guesses.length === 1 ? 'tentativa disponível' : 'tentativas disponíveis'}`;
+        });
+        renderGrid();
+        const contextRanks = new Map([['praia', 1], ['mar', 2], ['areia', 3], ['oceano', 4], ['onda', 7], ['sol', 12], ['barco', 16], ['ferias', 23], ['ilha', 28], ['peixe', 41], ['rio', 96], ['floresta', 550], ['cachorro', 3000]]);
+        const contextGuesses = [];
+        const contextList = document.getElementById('contexto-list');
+        const contextInput = document.getElementById('contexto-input');
+        const contextStatus = document.getElementById('contexto-status');
+        document.getElementById('contexto-form').addEventListener('submit', event => {
+            event.preventDefault();
+            const word = normalize(contextInput.value);
+            if (!word) { contextStatus.textContent = 'Digite uma palavra para tentar.'; return; }
+            if (contextGuesses.some(guess => guess.word === word)) { contextStatus.textContent = 'Você já tentou essa palavra.'; return; }
+            const rank = contextRanks.get(word) ?? 9999;
+            contextGuesses.push({ word: contextInput.value.trim(), rank });
+            contextGuesses.sort((first, second) => first.rank - second.rank);
+            contextList.replaceChildren();
+            contextGuesses.forEach(guess => {
+                const row = document.createElement('li');
+                const label = document.createElement('span'); label.textContent = guess.word.toLocaleUpperCase('pt-BR');
+                const position = document.createElement('strong'); position.textContent = `#${guess.rank}`;
+                row.append(label, position); contextList.append(row);
+            });
+            contextInput.value = '';
+            if (rank === 1) { contextStatus.textContent = `Você encontrou a palavra secreta: ${contextGuesses.find(guess => guess.rank === 1).word.toLocaleUpperCase('pt-BR')}!`; contextInput.disabled = true; }
+            else if (rank < 10) contextStatus.textContent = `Muito perto: posição ${rank}. Continue explorando essa ideia.`;
+            else if (rank < 100) contextStatus.textContent = `Boa aproximação: posição ${rank}.`;
+            else contextStatus.textContent = `Palpite registrado na posição ${rank}. Tente outra associação.`;
+        });
+    </script>
+</body>
+</html>

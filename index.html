@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palavras Mágicas: A Fuga</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --card-bg: rgba(22, 31, 49, 0.85);
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --secondary: #06b6d4;
+            --accent: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #090d16 100%);
+        }
+
+        .game-card {
+            width: 100%;
+            max-width: 500px;
+            height: 90vh;
+            max-height: 820px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+        }
+
+        header {
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 2;
+        }
+
+        .stat-box {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .stat-value {
+            color: var(--text-main);
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+
+        /* Cenário */
+        .stage {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #0f172a 0%, #1e293b 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .ground {
+            width: 100%;
+            height: 50px;
+            background: linear-gradient(to bottom, #334155, #1e293b);
+            border-top: 3px solid var(--secondary);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Zona de Ação/Ativação */
+        .action-zone {
+            position: absolute;
+            left: 120px;
+            width: 130px;
+            bottom: 50px;
+            top: 0;
+            background: rgba(6, 182, 212, 0.08);
+            border-left: 2px dashed rgba(6, 182, 212, 0.3);
+            border-right: 2px dashed rgba(6, 182, 212, 0.3);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Personagem */
+        .hero {
+            position: absolute;
+            left: 50px;
+            bottom: 50px;
+            width: 45px;
+            height: 60px;
+            z-index: 3;
+            transition: transform 0.2s;
+        }
+
+        .hero-body {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary), #818cf8);
+            border-radius: 12px 12px 6px 6px;
+            position: relative;
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
+        .hero-visor {
+            position: absolute;
+            top: 12px;
+            left: 8px;
+            right: 8px;
+            height: 12px;
+            background: var(--secondary);
+            border-radius: 4px;
+            box-shadow: 0 0 8px var(--secondary);
+        }
+
+        .hero.jumping {
+            animation: heroJump 0.6s ease-out;
+        }
+
+        @keyframes heroJump {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-90px); }
+            100% { transform: translateY(0); }
+        }
+
+        /* Obstáculo Dinâmico */
+        .obstacle {
+            position: absolute;
+            bottom: 50px;
+            width: 50px;
+            height: 55px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            left: 100%;
+        }
+
+        .obs-label {
+            position: absolute;
+            top: -24px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 2px 6px;
+            border-radius: 4px;
+            white-space: nowrap;
+            color: #fff;
+        }
+
+        /* Estilos dos Obstáculos */
+        .obs-fogo { background: linear-gradient(135deg, #ef4444, #f97316); border: 2px solid #fca5a5; }
+        .obs-abismo { background: linear-gradient(135deg, #0f172a, #000); border: 2px dashed #64748b; height: 15px; bottom: 35px; }
+        .obs-rocha { background: linear-gradient(135deg, #64748b, #334155); border: 2px solid #94a3b8; border-radius: 50% 50% 8px 8px; }
+        .obs-espinhos { background: linear-gradient(135deg, #84cc16, #15803d); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); height: 45px; }
+        .obs-lago { background: linear-gradient(135deg, #0284c7, #0369a1); border-top: 3px solid #38bdf8; height: 20px; bottom: 35px; }
+        .obs-tronco { background: linear-gradient(135deg, #b45309, #78350f); border: 2px solid #d97706; border-radius: 8px; height: 35px; }
+        .obs-parede { background: linear-gradient(135deg, #475569, #1e293b); border: 2px solid #94a3b8; height: 75px; }
+        .obs-nevoa { background: rgba(241, 245, 249, 0.4); border: 2px solid #ffffff; backdrop-filter: blur(4px); }
+
+        /* Controles */
+        .controls {
+            padding: 20px 24px;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 2;
+        }
+
+        .prompt {
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            min-height: 24px;
+        }
+
+        .word-hint-box {
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--accent);
+            font-weight: 700;
+            background: rgba(245, 158, 11, 0.1);
+            padding: 6px;
+            border-radius: 8px;
+            border: 1px dashed rgba(245, 158, 11, 0.3);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .word-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            padding: 14px 18px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            border-radius: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .word-input:focus {
+            border-color: var(--secondary);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--secondary), #0284c7);
+            color: #fff;
+            border: none;
+            padding: 0 20px;
+            font-size: 1rem;
+            font-weight: 800;
+            border-radius: 14px;
+            cursor: pointer;
+        }
+
+        /* Overlays */
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(11, 15, 25, 0.95);
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 32px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .overlay.hidden {
+            display: none;
+        }
+
+        .game-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+        }
+
+        .game-desc {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 28px;
+            max-width: 320px;
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            color: #ffffff;
+            border: none;
+            padding: 16px 40px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            border-radius: 100px;
+            cursor: pointer;
+        }
+
+        .score-badge {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin: 16px 0 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-card">
+        <!-- Tela Inicial -->
+        <div id="start-screen" class="overlay">
+            <h1 class="game-title">Palavras Mágicas</h1>
+            <p class="game-desc">Os obstáculos vêm devagar. Olhe a palavra indicada abaixo, espere o obstáculo chegar perto e digite para destruí-lo. Se ele bater em você, é fim de jogo instantâneo!</p>
+            <button class="btn-action" onclick="startGame()">Iniciar Corrida</button>
+        </div>
+
+        <!-- Tela Game Over -->
+        <div id="gameover-screen" class="overlay hidden">
+            <h1 class="game-title" style="background: linear-gradient(135deg, #ef4444, #f97316); -webkit-background-clip: text;">Fim de Jogo</h1>
+            <p class="game-desc">O obstáculo colidiu com você!</p>
+            <div class="score-badge" id="final-score">0m</div>
+            <button class="btn-action" onclick="startGame()">Tentar Novamente</button>
+        </div>
+
+        <!-- Cabeçalho -->
+        <header>
+            <div class="stat-box">
+                DISTÂNCIA: <span class="stat-value" id="score">0m</span>
+            </div>
+            <div class="stat-box">
+                VELOCIDADE: <span class="stat-value" id="speed-label">1x</span>
+            </div>
+        </header>
+
+        <!-- Cenário -->
+        <div class="stage" id="stage">
+            <div class="action-zone"></div>
+            
+            <div class="hero" id="hero">
+                <div class="hero-body">
+                    <div class="hero-visor"></div>
+                </div>
+            </div>
+
+            <div class="ground"></div>
+        </div>
+
+        <!-- Controles -->
+        <div class="controls">
+            <div class="prompt" id="prompt">Aguardando corrida...</div>
+            <div class="word-hint-box" id="word-hint">Palavra necessária: ---</div>
+            <div class="input-group">
+                <input type="text" id="word-input" class="word-input" placeholder="Digite aqui..." autocomplete="off" disabled>
+                <button class="btn-submit" id="btn-submit" onclick="submitWord()" disabled>Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const OBSTACLES_DATA = [
+            { id: "fogo", name: "Parede de Fogo", class: "obs-fogo", correct: "agua" },
+            { id: "abismo", name: "Precipício", class: "obs-abismo", correct: "ponte" },
+            { id: "rocha", name: "Barreira de Pedra", class: "obs-rocha", correct: "pedra" },
+            { id: "espinhos", name: "Espinhos", class: "obs-espinhos", correct: "pulo" },
+            { id: "lago", name: "Lago Profundo", class: "obs-lago", correct: "barco" },
+            { id: "tronco", name: "Tronco Caído", class: "obs-tronco", correct: "pulo" },
+            { id: "parede", name: "Parede Alta", class: "obs-parede", correct: "escada" },
+            { id: "nevoa", name: "Névoa Densa", class: "obs-nevoa", correct: "vento" }
+        ];
+
+        let score = 0;
+        let isPlaying = false;
+        let baseSpeed = 1.8; // Velocidade bem mais devagar
+        let currentSpeed = 1.8;
+        let activeObstacles = [];
+        let gameLoopId = null;
+        let spawnTimer = null;
+
+        const scoreEl = document.getElementById('score');
+        const speedLabelEl = document.getElementById('speed-label');
+        const promptEl = document.getElementById('prompt');
+        const wordHintEl = document.getElementById('word-hint');
+        const wordInput = document.getElementById('word-input');
+        const btnSubmit = document.getElementById('btn-submit');
+        const heroEl = document.getElementById('hero');
+        const stageEl = document.getElementById('stage');
+        const startScreen = document.getElementById('start-screen');
+        const gameoverScreen = document.getElementById('gameover-screen');
+        const finalScoreEl = document.getElementById('final-score');
+
+        function startGame() {
+            score = 0;
+            currentSpeed = baseSpeed;
+            isPlaying = true;
+
+            activeObstacles.forEach(obs => obs.element.remove());
+            activeObstacles = [];
+
+            startScreen.classList.add('hidden');
+            gameoverScreen.classList.add('hidden');
+            
+            scoreEl.textContent = '0m';
+            speedLabelEl.textContent = '1.0x';
+            
+            wordInput.disabled = false;
+            btnSubmit.disabled = false;
+            wordInput.value = '';
+            wordInput.focus();
+
+            promptEl.textContent = "Fugindo! Observe a palavra abaixo.";
+            updateNextHint();
+
+            cancelAnimationFrame(gameLoopId);
+            clearTimeout(spawnTimer);
+            gameLoop();
+            scheduleNextSpawn();
+        }
+
+        function updateNextHint() {
+            const targetObstacle = activeObstacles.find(obs => !obs.cleared);
+            if (targetObstacle) {
+                wordHintEl.textContent = `💡 Digite para destruir "${targetObstacle.data.name}": [ ${targetObstacle.data.correct.toUpperCase()} ]`;
+            } else {
+                wordHintEl.textContent = `💡 Aguardando próximo obstáculo...`;
+            }
+        }
+
+        function scheduleNextSpawn() {
+            if (!isPlaying) return;
+            
+            const spawnInterval = Math.max(3500, 6000 - (currentSpeed * 400));
+            
+            spawnTimer = setTimeout(() => {
+                if (isPlaying) {
+                    spawnObstacle();
+                    scheduleNextSpawn();
+                }
+            }, spawnInterval);
+        }
+
+        function spawnObstacle() {
+            const data = OBSTACLES_DATA[Math.floor(Math.random() * OBSTACLES_DATA.length)];
+            
+            const el = document.createElement('div');
+            el.className = `obstacle ${data.class}`;
+            
+            const label = document.createElement('div');
+            label.className = 'obs-label';
+            label.textContent = data.name;
+            el.appendChild(label);
+
+            stageEl.appendChild(el);
+
+            const obsObj = {
+                element: el,
+                data: data,
+                posX: stageEl.offsetWidth,
+                cleared: false
+            };
+
+            activeObstacles.push(obsObj);
+            updateNextHint();
+        }
+
+        function gameLoop() {
+            if (!isPlaying) return;
+
+            score += 0.05;
+            scoreEl.textContent = `${Math.floor(score)}m`;
+            
+            currentSpeed = baseSpeed + (score / 200);
+            speedLabelEl.textContent = `${(currentSpeed / baseSpeed).toFixed(1)}x`;
+
+            const heroBox = heroEl.getBoundingClientRect();
+
+            for (let i = activeObstacles.length - 1; i >= 0; i--) {
+                const obs = activeObstacles[i];
+                obs.posX -= currentSpeed;
+                obs.element.style.left = `${obs.posX}px`;
+
+                const obsBox = obs.element.getBoundingClientRect();
+
+                // Se o obstáculo bater no personagem sem ser resolvido -> Game Over imediato
+                if (!obs.cleared && obsBox.left <= heroBox.right) {
+                    endGame();
+                    return;
+                }
+
+                if (obs.posX < -100) {
+                    obs.element.remove();
+                    activeObstacles.splice(i, 1);
+                }
+            }
+
+            updateNextHint();
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        function submitWord() {
+            if (!isPlaying) return;
+
+            const typed = wordInput.value.trim().toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+            if (!typed) return;
+
+            const heroBox = heroEl.getBoundingClientRect();
+            const targetObstacle = activeObstacles.find(obs => !obs.cleared);
+
+            if (targetObstacle) {
+                const obsBox = targetObstacle.element.getBoundingClientRect();
+                const distance = obsBox.left - heroBox.right;
+
+                if (typed === targetObstacle.data.correct) {
+                    // Aceita se estiver na zona próxima (menos de 250px)
+                    if (distance < 250) {
+                        targetObstacle.cleared = true;
+                        
+                        targetObstacle.element.style.transition = 'all 0.3s';
+                        targetObstacle.element.style.opacity = '0';
+                        targetObstacle.element.style.transform = 'scale(1.5)';
+
+                        if (typed === 'pulo') {
+                            heroEl.classList.add('jumping');
+                            setTimeout(() => heroEl.classList.remove('jumping'), 600);
+                        }
+
+                        promptEl.textContent = `✨ "${typed.toUpperCase()}" usado com sucesso!`;
+                        wordInput.value = '';
+                    } else {
+                        promptEl.textContent = `⚠️ Muito cedo! Espere chegar mais perto da zona azul.`;
+                    }
+                } else {
+                    promptEl.textContent = `❌ Palavra incorreta! A correta é "${targetObstacle.data.correct.toUpperCase()}".`;
+                }
+            } else {
+                promptEl.textContent = `Nenhum obstáculo à vista!`;
+            }
+        }
+
+        wordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                submitWord();
+            }
+        });
+
+        function endGame() {
+            isPlaying = false;
+            cancelAnimationFrame(gameLoopId);
+            clearTimeout(spawnTimer);
+            
+            wordInput.disabled = true;
+            btnSubmit.disabled = true;
+
+            finalScoreEl.textContent = `${Math.floor(score)}m`;
+            gameoverScreen.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

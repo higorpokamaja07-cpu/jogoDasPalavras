@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f4f2ea">
+    <title>Palavra | Jogo de adivinhação</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            color-scheme: light;
+            --paper: #f4f2ea;
+            --ink: #26312d;
+            --muted: #66716b;
+            --line: #d5d8cf;
+            --green: #28775b;
+            --yellow: #e6b838;
+            --gray: #68736d;
+            --display: 'Bricolage Grotesque', 'Trebuchet MS', sans-serif;
+            --body: 'Atkinson Hyperlegible', 'Trebuchet MS', sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            min-width: 320px;
+            min-height: 100vh;
+            margin: 0;
+            color: var(--ink);
+            background-color: var(--paper);
+            background-image: radial-gradient(#d7d8cf 0.7px, transparent 0.7px);
+            background-size: 15px 15px;
+            font-family: var(--body);
+        }
+        button { font: inherit; }
+        button:focus-visible { outline: 3px solid #c94f37; outline-offset: 3px; }
+
+        .game {
+            width: min(100% - 32px, 440px);
+            margin: 0 auto;
+            padding: 24px 0 32px;
+        }
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 0 15px;
+            border-bottom: 1px solid var(--line);
+        }
+        .brand { font: 800 21px var(--display); letter-spacing: .02em; }
+        .brand span { color: #c94f37; }
+        .round-label { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+        .intro { padding: 21px 0 15px; text-align: center; }
+        h1 { margin: 0; font: 800 29px/1.1 var(--display); }
+        .instructions { margin: 7px 0 0; color: var(--muted); font-size: 14px; }
+
+        .board { display: grid; gap: 7px; width: min(100%, 302px); margin: 0 auto 15px; }
+        .guess-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
+        .tile {
+            display: grid;
+            aspect-ratio: 1;
+            place-items: center;
+            background: rgba(255,255,255,.45);
+            border: 2px solid #c9cec5;
+            font: 800 23px var(--display);
+            text-transform: uppercase;
+        }
+        .tile.filled { border-color: #78847c; }
+        .tile.correct { color: #fff; background: var(--green); border-color: var(--green); }
+        .tile.present { color: var(--ink); background: var(--yellow); border-color: var(--yellow); }
+        .tile.absent { color: #fff; background: var(--gray); border-color: var(--gray); }
+        .tile.reveal { animation: flip .32s ease both; }
+        @keyframes flip { from { transform: rotateX(0); } 50% { transform: rotateX(90deg); } to { transform: rotateX(0); } }
+
+        .legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 7px 13px; margin: 0 0 13px; color: #4d5a53; font-size: 11px; }
+        .legend-item { display: inline-flex; align-items: center; gap: 5px; }
+        .swatch { width: 11px; height: 11px; border: 1px solid rgba(38,49,45,.2); border-radius: 2px; }
+        .swatch.correct { background: var(--green); }
+        .swatch.present { background: var(--yellow); }
+        .swatch.absent { background: var(--gray); }
+        .message { min-height: 22px; margin: 0 0 8px; color: #40564b; font-size: 13px; font-weight: 700; text-align: center; }
+        .keyboard { display: grid; gap: 7px; width: 100%; }
+        .key-row { display: flex; justify-content: center; gap: 5px; }
+        .key {
+            flex: 1 1 0;
+            min-width: 0;
+            max-width: 38px;
+            height: 48px;
+            padding: 0 3px;
+            color: var(--ink);
+            background: #dfe3da;
+            border: 0;
+            border-radius: 4px;
+            font: 700 14px var(--display);
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        .key:hover { background: #cfd7cc; }
+        .key.wide { flex: 1.5 1 0; max-width: 58px; font: 700 11px var(--body); }
+        .key.correct { color: #fff; background: var(--green); }
+        .key.present { color: var(--ink); background: var(--yellow); }
+        .key.absent { color: #fff; background: var(--gray); }
+        .restart {
+            display: block;
+            min-height: 44px;
+            margin: 14px auto 0;
+            padding: 9px 18px;
+            color: #fff;
+            background: #c94f37;
+            border: 0;
+            border-radius: 4px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .restart[hidden] { display: none; }
+        .restart:hover { background: #a83f2c; }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+        @media (max-width: 360px) {
+            .game { width: calc(100% - 24px); padding-top: 16px; }
+            .guess-row { gap: 5px; }
+            .board { gap: 5px; }
+            .tile { font-size: 20px; }
+            .key-row { gap: 3px; }
+            .key { height: 44px; font-size: 12px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+        }
+    </style>
+</head>
+<body>
+    <main class="game">
+        <header class="topbar">
+            <div class="brand">PALAVRA<span>.</span></div>
+            <div class="round-label" id="round-label">Desafio 01</div>
+        </header>
+        <section class="intro" aria-labelledby="game-title">
+            <h1 id="game-title">Qual é a palavra?</h1>
+            <p class="instructions">Descubra a palavra de cinco letras em seis tentativas.</p>
+        </section>
+        <div class="board" id="board" role="group" aria-label="Tabuleiro com seis tentativas"></div>
+        <div class="legend" aria-label="Significado das cores">
+            <span class="legend-item"><span class="swatch correct" aria-hidden="true"></span>Letra no lugar certo</span>
+            <span class="legend-item"><span class="swatch present" aria-hidden="true"></span>Letra em outro lugar</span>
+            <span class="legend-item"><span class="swatch absent" aria-hidden="true"></span>Não aparece</span>
+        </div>
+        <p class="message" id="message" role="status" aria-live="polite">Digite uma palavra de cinco letras.</p>
+        <div class="keyboard" id="keyboard" role="group" aria-label="Teclado de letras"></div>
+        <button class="restart" id="restart" type="button" hidden>Nova palavra</button>
+    </main>
+
+    <script>
+        const words = ['NUVEM', 'FAROL', 'PRAIA', 'LIVRO', 'VENTO'];
+        let wordIndex = 0;
+        let answer = words[wordIndex];
+        let guesses = [];
+        let currentGuess = [];
+        let finished = false;
+
+        const board = document.getElementById('board');
+        const keyboard = document.getElementById('keyboard');
+        const message = document.getElementById('message');
+        const restartButton = document.getElementById('restart');
+        const roundLabel = document.getElementById('round-label');
+        const keyboardRows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+        const keyStates = new Map();
+
+        function renderBoard() {
+            board.replaceChildren();
+            for (let rowIndex = 0; rowIndex < 6; rowIndex++) {
+                const row = document.createElement('div');
+                row.className = 'guess-row';
+                row.setAttribute('aria-label', `Tentativa ${rowIndex + 1}`);
+                const guess = guesses[rowIndex];
+                for (let column = 0; column < 5; column++) {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
+                    if (guess) {
+                        const letter = guess.word[column];
+                        const state = guess.states[column];
+                        tile.textContent = letter;
+                        tile.classList.add(state, 'reveal');
+                        tile.setAttribute('aria-label', `${letter}, ${state === 'correct' ? 'posição correta' : state === 'present' ? 'está na palavra em outra posição' : 'não está na palavra'}`);
+                    } else if (rowIndex === guesses.length && currentGuess[column]) {
+                        tile.textContent = currentGuess[column];
+                        tile.classList.add('filled');
+                        tile.setAttribute('aria-label', currentGuess[column]);
+                    } else {
+                        tile.setAttribute('aria-hidden', 'true');
+                    }
+                    row.append(tile);
+                }
+                board.append(row);
+            }
+        }
+
+        function renderKeyboard() {
+            keyboard.replaceChildren();
+            keyboardRows.forEach((letters, rowIndex) => {
+                const row = document.createElement('div');
+                row.className = 'key-row';
+                if (rowIndex === 2) row.append(createKey('ENTER', 'ENTER', true));
+                [...letters].forEach(letter => row.append(createKey(letter, letter)));
+                if (rowIndex === 2) row.append(createKey('⌫', '⌫', true));
+                keyboard.append(row);
+            });
+        }
+
+        function createKey(label, value, wide = false) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `key${wide ? ' wide' : ''}`;
+            button.textContent = label;
+            button.setAttribute('aria-label', value === '⌫' ? 'Apagar letra' : value === 'ENTER' ? 'Enviar palpite' : `Letra ${value}`);
+            button.dataset.key = value;
+            const state = keyStates.get(value);
+            if (state) button.classList.add(state);
+            button.disabled = finished;
+            button.addEventListener('click', () => pressKey(value));
+            return button;
+        }
+
+        function pressKey(key) {
+            if (finished) return;
+            if (key === 'ENTER') {
+                submitGuess();
+            } else if (key === '⌫') {
+                currentGuess.pop();
+                renderBoard();
+            } else if (/^[A-Z]$/.test(key) && currentGuess.length < 5) {
+                currentGuess.push(key);
+                renderBoard();
+            }
+        }
+
+        function scoreGuess(guess) {
+            const states = Array(5).fill('absent');
+            const remaining = [...answer];
+            [...guess].forEach((letter, index) => {
+                if (letter === answer[index]) {
+                    states[index] = 'correct';
+                    remaining[index] = null;
+                }
+            });
+            [...guess].forEach((letter, index) => {
+                if (states[index] !== 'correct') {
+                    const match = remaining.indexOf(letter);
+                    if (match !== -1) {
+                        states[index] = 'present';
+                        remaining[match] = null;
+                    }
+                }
+            });
+            return states;
+        }
+
+        function submitGuess() {
+            if (currentGuess.length !== 5) {
+                message.textContent = 'A palavra precisa ter cinco letras.';
+                return;
+            }
+            const guess = currentGuess.join('');
+            const states = scoreGuess(guess);
+            guesses.push({ word: guess, states });
+            currentGuess = [];
+            states.forEach((state, index) => {
+                const letter = guess[index];
+                const previous = keyStates.get(letter);
+                const priority = { absent: 0, present: 1, correct: 2 };
+                if (!previous || priority[state] > priority[previous]) keyStates.set(letter, state);
+            });
+            if (guess === answer) {
+                finishGame(`Acertou em ${guesses.length} ${guesses.length === 1 ? 'tentativa' : 'tentativas'}!`);
+            } else if (guesses.length === 6) {
+                finishGame(`Fim das tentativas. A palavra era ${answer}.`);
+            } else {
+                message.textContent = 'Palpite registrado. Tente outra palavra.';
+            }
+            renderBoard();
+            renderKeyboard();
+        }
+
+        function finishGame(result) {
+            finished = true;
+            message.textContent = result;
+            restartButton.hidden = false;
+        }
+
+        function startNextRound() {
+            wordIndex = (wordIndex + 1) % words.length;
+            answer = words[wordIndex];
+            guesses = [];
+            currentGuess = [];
+            finished = false;
+            keyStates.clear();
+            roundLabel.textContent = `Desafio ${String(wordIndex + 1).padStart(2, '0')}`;
+            message.textContent = 'Digite uma palavra de cinco letras.';
+            restartButton.hidden = true;
+            renderBoard();
+            renderKeyboard();
+        }
+
+        document.addEventListener('keydown', event => {
+            if (event.ctrlKey || event.altKey || event.metaKey || finished) return;
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                pressKey('ENTER');
+            } else if (event.key === 'Backspace') {
+                event.preventDefault();
+                pressKey('⌫');
+            } else if (/^[a-zA-Z]$/.test(event.key)) {
+                event.preventDefault();
+                pressKey(event.key.toUpperCase());
+            }
+        });
+
+        restartButton.addEventListener('click', startNextRound);
+        renderBoard();
+        renderKeyboard();
+    </script>
+</body>
+</html>
